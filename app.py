@@ -145,8 +145,10 @@ def analyze_food_image(image_bytes):
     
     # Perbaikan sintaks menggunakan client.models.generate_content
     response = client.models.generate_content(
-        model='gemini-1.5-flash',
-        contents=[image, prompt]
+    model='gemini-2.5-flash',
+    contents=[image, prompt]
+)
+
     )
     return response.text
 
