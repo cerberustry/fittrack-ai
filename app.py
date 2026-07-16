@@ -128,8 +128,8 @@ st.header("📸 Pindai Makanan Anda")
 img_file = st.camera_input("Ambil Foto Makanan")
 
 def analyze_food_image(image_bytes):
-    # Menggunakan model terbaru dengan pemanggilan yang dijamin aman di Streamlit Cloud
-    model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+    # Beralih ke model Pro jika model Flash mengalami masalah rute API
+    model = genai.GenerativeModel(model_name='models/gemini-1.5-pro')
     prompt = """
     Kamu adalah ahli nutrisi AI. Analisis gambar makanan ini dan berikan estimasi nutrisinya.
     Format jawaban HARUS persis seperti template di bawah ini, jangan menulis kalimat pembuka atau penutup lain.
@@ -144,6 +144,7 @@ def analyze_food_image(image_bytes):
     image = Image.open(io.BytesIO(image_bytes))
     response = model.generate_content([prompt, image])
     return response.text
+
 
 
 if img_file is not None:
