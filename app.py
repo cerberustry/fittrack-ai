@@ -1,17 +1,18 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from PIL import Image
 import io
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, date
 
-# 1. KONFIGURASI API GEMINI (Membaca secara aman dari Secrets Streamlit)
+# 1. KONFIGURASI API GEMINI (Menggunakan Google GenAI SDK Terbaru)
 try:
     GENAI_API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=GENAI_API_KEY)
+    # Inisialisasi client resmi Google GenAI
+    client = genai.Client(api_key=GENAI_API_KEY)
 except Exception:
-    st.error("API Key tidak ditemukan di Streamlit Secrets. Sila periksa tab Settings -> Secrets.")
+    st.error("API Key tidak ditemukan di Streamlit Secrets. Silakan periksa tab Settings -> Secrets.")
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(page_title="FitTrack AI - Calorie & Weight Tracker", page_icon="🎾", layout="centered")
@@ -128,8 +129,7 @@ st.header("📸 Pindai Makanan Anda")
 img_file = st.camera_input("Ambil Foto Makanan")
 
 def analyze_food_image(image_bytes):
-    # Beralih ke model Pro jika model Flash mengalami masalah rute API
-    model = genai.GenerativeModel(model_name='models/gemini-1.5-pro')
+    # Format pemanggilan model multimodal menggunakan SDK Google GenAI versi terbaru
     prompt = """
     Kamu adalah ahli nutrisi AI. Analisis gambar makanan ini dan berikan estimasi nutrisinya.
     Format jawaban HARUS persis seperti template di bawah ini, jangan menulis kalimat pembuka atau penutup lain.
@@ -142,10 +142,13 @@ def analyze_food_image(image_bytes):
     Lemak: [Angka saja dalam gram, misal: 12]
     """
     image = Image.open(io.BytesIO(image_bytes))
-    response = model.generate_content([prompt, image])
+    
+    # Perbaikan sintaks menggunakan client.models.generate_content
+    response = client.models.generate_content(
+        model='gemini-1.5-flash',
+        contents=[image, prompt]
+    )
     return response.text
-
-
 
 if img_file is not None:
     bytes_data = img_file.getvalue()
