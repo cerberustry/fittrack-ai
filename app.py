@@ -1,4 +1,4 @@
-import streamlit as st
+ok import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 import io
@@ -135,8 +135,9 @@ st.header("📸 Pindai Makanan Anda")
 img_file = st.camera_input("Ambil Foto Makanan")
 
 def analyze_food_image(image_bytes):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-pro-vision') # <-- Diganti menjadi gemini-pro-vision
     prompt = """
+
     Kamu adalah ahli nutrisi AI. Analisis gambar makanan ini dan berikan estimasi nutrisinya.
     Format jawaban HARUS persis seperti template di bawah ini, jangan menulis kalimat pembuka atau penutup lain.
     Format output:
