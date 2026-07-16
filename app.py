@@ -140,12 +140,12 @@ def analyze_food_image(image_bytes):
     Lemak: [Angka saja dalam gram, misal: 12]
     """
     image = Image.open(io.BytesIO(image_bytes))
-    
-    # Menggunakan model gemini-2.5-flash dengan sintaksis SDK yang presisi
-    response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=[image, prompt]
-    )
+    # Menggunakan model gemini-2.5-pro yang aktif dan didukung penuh
+response = client.models.generate_content(
+    model='gemini-2.5-pro',
+    contents=[image, prompt]
+)
+
     return response.text
 
 if img_file is not None:
