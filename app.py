@@ -7,8 +7,10 @@ import plotly.express as px
 from datetime import datetime, date
 
 # 1. KONFIGURASI API GEMINI (Ganti dengan API Key Anda)
-GENAI_API_KEY = "TULIS_API_KEY_GEMINI_ANDA_DISINI"
+# Membaca API Key secara aman dari Secrets Streamlit
+GENAI_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GENAI_API_KEY)
+
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(page_title="FitTrack AI - Calorie & Weight Tracker", page_icon="🎾", layout="centered")
