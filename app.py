@@ -1,4 +1,4 @@
-ok import streamlit as st
+import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 import io
@@ -6,11 +6,12 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, date
 
-# 1. KONFIGURASI API GEMINI (Ganti dengan API Key Anda)
-# Membaca API Key secara aman dari Secrets Streamlit
-GENAI_API_KEY = st.secrets["GEMINI_API_KEY"]
-genai.configure(api_key=GENAI_API_KEY)
-
+# 1. KONFIGURASI API GEMINI (Membaca secara aman dari Secrets Streamlit)
+try:
+    GENAI_API_KEY = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=GENAI_API_KEY)
+except Exception:
+    st.error("API Key tidak ditemukan di Streamlit Secrets. Sila periksa tab Settings -> Secrets.")
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(page_title="FitTrack AI - Calorie & Weight Tracker", page_icon="🎾", layout="centered")
@@ -22,7 +23,6 @@ WEIGHT_FILE = "weight_history.csv"
 try:
     df_weight = pd.read_csv(WEIGHT_FILE)
 except FileNotFoundError:
-    # Buat data awal berdasarkan progres Anda (66kg ke 63kg dalam 2 minggu terakhir)
     initial_data = {
         "Tanggal": [
             (date.today() - pd.Timedelta(days=14)).strftime("%Y-%m-%d"),
@@ -80,10 +80,9 @@ if st.button("Reset Data Harian", type="secondary"):
 
 st.markdown("---")
 
-# ================= 2. GRAFIK BERAT BADAN (FITUR BARU!) =================
+# ================= 2. GRAFIK BERAT BADAN =================
 st.header("📈 Grafik Perkembangan Berat Badan")
 
-# Input Berat Badan Baru
 col_input1, col_input2 = st.columns([2, 1])
 with col_input1:
     input_date = st.date_input("Tanggal Timbang", value=date.today())
@@ -91,20 +90,15 @@ with col_input2:
     input_weight = st.number_input("Berat (kg)", min_value=30.0, max_value=150.0, value=63.0, step=0.1)
 
 if st.button("Simpan Berat Badan", type="primary"):
-    # Baca data terbaru, tambahkan data baru, lalu simpan ke CSV
     df_weight = pd.read_csv(WEIGHT_FILE)
     new_entry = pd.DataFrame({"Tanggal": [input_date.strftime("%Y-%m-%d")], "Berat (kg)": [input_weight]})
-    
-    # Hapus entri lama jika menginput di tanggal yang sama agar tidak duplikat
     df_weight = df_weight[df_weight["Tanggal"] != input_date.strftime("%Y-%m-%d")]
-    
     df_weight = pd.concat([df_weight, new_entry], ignore_index=True)
-    df_weight = df_weight.sort_values(by="Tanggal") # Urutkan berdasarkan tanggal
+    df_weight = df_weight.sort_values(by="Tanggal")
     df_weight.to_csv(WEIGHT_FILE, index=False)
     st.success(f"Berat badan {input_weight} kg berhasil disimpan!")
     st.rerun()
 
-# Menampilkan Grafik Menggunakan Plotly
 df_plot = pd.read_csv(WEIGHT_FILE)
 df_plot["Tanggal"] = pd.to_datetime(df_plot["Tanggal"])
 
@@ -115,9 +109,8 @@ if not df_plot.empty:
         y="Berat (kg)", 
         title="Tren Penurunan Berat Badan Anda",
         markers=True,
-        color_discrete_sequence=["#1E90FF"] # Warna biru tenis
+        color_discrete_sequence=["#1E90FF"]
     )
-    # Atur tampilan grafik agar cantik di HP
     fig.update_layout(
         xaxis_title="Tanggal",
         yaxis_title="Berat Badan (kg)",
@@ -135,9 +128,9 @@ st.header("📸 Pindai Makanan Anda")
 img_file = st.camera_input("Ambil Foto Makanan")
 
 def analyze_food_image(image_bytes):
-    model = genai.GenerativeModel('gemini-pro-vision') # <-- Diganti menjadi gemini-pro-vision
+    # Menggunakan model multimodal terbaru yang didukung penuh di tahun 2026
+    model = genai.GenerativeModel('gemini-1.5-flash')
     prompt = """
-
     Kamu adalah ahli nutrisi AI. Analisis gambar makanan ini dan berikan estimasi nutrisinya.
     Format jawaban HARUS persis seperti template di bawah ini, jangan menulis kalimat pembuka atau penutup lain.
     Format output:
@@ -181,7 +174,7 @@ if img_file is not None:
                 st.rerun()
                 
         except Exception as e:
-            st.error(f"Gagal menganalisis gambar. Pastikan API Key Anda benar. Error: {e}")
+            st.error(f"Gagal menganalisis gambar. Error: {e}")
 
 st.markdown("---")
 
